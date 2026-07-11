@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { ingredients } from './ingredients'
 import { recipeCategories, recipes } from './recipes'
 
- describe('recipe database', () => {
-  it('contains exactly 225 recipes', () => {
-    expect(recipes).toHaveLength(225)
+describe('recipe database', () => {
+  it('contains exactly 725 recipes', () => {
+    expect(recipes).toHaveLength(725)
   })
 
-  it('contains 45 recipes in every requested category', () => {
+  it('contains 145 recipes in every requested category', () => {
     for (const category of recipeCategories) {
-      expect(recipes.filter((recipe) => recipe.category === category)).toHaveLength(45)
+      expect(recipes.filter((recipe) => recipe.category === category)).toHaveLength(145)
     }
   })
 

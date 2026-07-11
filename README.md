@@ -13,25 +13,58 @@ Falls GitHub Pages im Repository noch nicht aktiviert ist, unter **Settings → 
 ## Funktionen
 
 1. **225 Rezepte** mit exakt 45 Einträgen pro Kategorie
+   1. Frühstück
+   2. Mittagessen
+   3. Pre-Workout
+   4. Abendessen
+   5. Snacks
 2. Automatisch berechnete Kalorien, Protein, Kohlenhydrate, Fett und Ballaststoffe
-3. Recipe Finder mit automatischer Portionsskalierung und Rezeptkombinationen
-4. Rezeptbrowser, Favoriten, Wochenplan, Einkaufsliste und Pantry-Modus
-5. Guided Cooking mit Zutaten-Checkliste, Timern und Wake Lock
-6. PWA-Installation, Offline-Cache, helles und dunkles Design
-7. Docker- und GitHub-Pages-Deployment
+3. Recipe Finder mit Gewichtung nach Kalorien, Protein oder Kohlenhydraten
+4. Automatische Portionsskalierung zwischen 50 und 250 Prozent
+5. Kombination von zwei kleineren Rezepten für schwer erreichbare Restmakros
+6. Filter nach Kategorie, Zeit, vegetarisch, transportierbar und vorhandenen Zutaten
+7. Browser mit Suche, Favoriten und sortierbaren Nährwertfiltern
+8. Wochenplan mit automatischer Verteilung auf sieben Tage
+9. Einkaufsliste mit Zusammenführung gleicher Zutaten
+10. Pantry-Modus zur Resteverwertung
+11. Guided Cooking mit einzelnen Schritten, Zutaten-Checkliste, Timern und Wake Lock
+12. Tagesfortschritt und „als gegessen“-Funktion
+13. JSON-Export und -Import aller lokalen Daten
+14. Dunkles und helles Design
+15. PWA-Installation und Offline-Cache
+16. Responsive Layout für Handy, Tablet und Desktop
+17. Docker- und GitHub-Pages-Deployment
 
 ## Lokale Entwicklung
+
+Voraussetzungen:
+
+1. Node.js 22 oder neuer
+2. npm 10 oder neuer
 
 ```bash
 npm install
 npm run dev
 ```
 
+Die Entwicklungsseite läuft anschließend standardmäßig unter `http://localhost:5173`.
+
 ## Qualitätsprüfung
 
 ```bash
 npm run check
 ```
+
+Der Befehl führt ESLint, sieben automatisierte Datensatz- und Matcher-Tests sowie den Produktions-Build aus.
+
+## Produktions-Build
+
+```bash
+npm run build
+npm run preview
+```
+
+Die fertige statische App liegt in `dist/`.
 
 ## Docker
 
@@ -41,13 +74,40 @@ docker compose up -d --build
 
 Danach ist MacroKitchen unter `http://localhost:8080` erreichbar.
 
-## Datenschutz
+## Projektstruktur
 
-Die App benötigt kein Konto. Ziele, Favoriten, Wochenplan, Einkaufsliste und Vorräte werden lokal im Browser gespeichert und können als JSON exportiert werden.
+```text
+src/
+  data/
+    ingredients.ts      Referenzwerte der Zutaten
+    recipes.ts          deterministisch erzeugte Rezeptdatenbank
+  lib/
+    matcher.ts          Makro-Matching und Rezeptkombinationen
+    nutrition.ts        Nährwertberechnung und Skalierung
+    storage.ts          lokale Speicherung und Backup
+  App.tsx               Benutzeroberfläche und alle Workflows
+  styles.css            responsives Designsystem
+public/
+  manifest.webmanifest  PWA-Metadaten
+  sw.js                  Offline- und Runtime-Cache
+.github/workflows/
+  ci.yml                 Lint, Tests und Build
+  pages.yml              GitHub-Pages-Deployment
+docs/
+  NUTRITION_DATA.md      Methodik und Quellenhinweise
+```
+
+## Daten und Datenschutz
+
+MacroKitchen benötigt kein Konto und keinen externen Backend-Dienst. Ziele, Favoriten, Wochenplan, Einkaufsliste und Vorräte werden im `localStorage` des jeweiligen Browsers gespeichert. Über die Einstellungen können diese Daten exportiert und später wieder importiert werden.
+
+Die App sendet keine Ernährungsdaten an einen Server. Nach dem ersten Laden kann sie weitgehend offline verwendet werden.
 
 ## Nährwertmethodik
 
-Die Rezeptwerte werden aus Referenzwerten pro 100 g berechnet. Grundlage sind generische Lebensmittelprofile aus USDA FoodData Central. Die Werte sind Näherungen und ersetzen keine medizinische oder ernährungstherapeutische Beratung.
+Die Rezeptwerte werden aus hinterlegten Referenzwerten pro 100 g berechnet. Grundlage sind generische Lebensmittelprofile aus **USDA FoodData Central**. Details und Einschränkungen stehen in [`docs/NUTRITION_DATA.md`](docs/NUTRITION_DATA.md).
+
+Die Werte sind Näherungen und ersetzen keine medizinische oder ernährungstherapeutische Beratung.
 
 ## Lizenz
 

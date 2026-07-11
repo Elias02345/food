@@ -1,0 +1,7 @@
+services:
+  macrokitchen:
+    build: .
+    container_name: macrokitchen
+    restart: unless-stopped
+    ports:
+      - "8080:80"

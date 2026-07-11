@@ -1,6 +1,6 @@
 # MacroKitchen
 
-Eine installierbare, local-first Web-App für proteinreiche Whole-Food-Rezepte. MacroKitchen enthält **225 berechnete Rezepte**, einen Makro-Finder mit automatischer Portionsskalierung, kombinierte Rezeptvorschläge, eine Einkaufsliste, Vorratsverwaltung, Wochenplanung und einen ablenkungsfreien Kochmodus.
+Eine installierbare, local-first Web-App für proteinreiche Whole-Food-Rezepte. MacroKitchen enthält **725 berechnete Rezepte**, einen Makro-Finder mit automatischer Portionsskalierung, kombinierte Rezeptvorschläge, eine Einkaufsliste, Vorratsverwaltung, Wochenplanung und einen ablenkungsfreien Kochmodus.
 
 ## Live-Version
 
@@ -12,7 +12,7 @@ Falls GitHub Pages im Repository noch nicht aktiviert ist, unter **Settings → 
 
 ## Funktionen
 
-1. **225 Rezepte** mit exakt 45 Einträgen pro Kategorie
+1. **725 Rezepte** mit exakt 145 Einträgen pro Kategorie
    1. Frühstück
    2. Mittagessen
    3. Pre-Workout
@@ -22,8 +22,8 @@ Falls GitHub Pages im Repository noch nicht aktiviert ist, unter **Settings → 
 3. Recipe Finder mit Gewichtung nach Kalorien, Protein oder Kohlenhydraten
 4. Automatische Portionsskalierung zwischen 50 und 250 Prozent
 5. Kombination von zwei kleineren Rezepten für schwer erreichbare Restmakros
-6. Filter nach Kategorie, Zeit, vegetarisch, transportierbar und vorhandenen Zutaten
-7. Browser mit Suche, Favoriten und sortierbaren Nährwertfiltern
+6. Filter nach Kategorie, Zeit, Küche, vegetarisch, transportierbar und vorhandenen Zutaten
+7. Browser mit Suche, Favoriten, Küchenfilter, Nährwertfiltern und schrittweisem Laden
 8. Wochenplan mit automatischer Verteilung auf sieben Tage
 9. Einkaufsliste mit Zusammenführung gleicher Zutaten
 10. Pantry-Modus zur Resteverwertung
@@ -34,6 +34,12 @@ Falls GitHub Pages im Repository noch nicht aktiviert ist, unter **Settings → 
 15. PWA-Installation und Offline-Cache
 16. Responsive Layout für Handy, Tablet und Desktop
 17. Docker- und GitHub-Pages-Deployment
+
+## Rezeptvielfalt
+
+Die Datenbank enthält bewährte Formate wie Overnight Oats, Quark- und Skyr-Bowls, herzhafte Frühstückspfannen, Salate, Lunchboxen, Bowls, One-Pot-Gerichte, Suppen, Eintöpfe, Blechgerichte und proteinreiche Snacks. Die neue Erweiterung ergänzt mediterrane, mexikanische, indische, asiatische, nahöstliche, nordische, griechische, italienische und marokkanische Geschmacksrichtungen.
+
+Die Online-Recherche, Entwicklungsgrundsätze und Quellen sind in [`docs/RECIPE_RESEARCH.md`](docs/RECIPE_RESEARCH.md) dokumentiert. Die Rezepte sind eigenständig entwickelt und nicht aus einzelnen Webseiten kopiert.
 
 ## Lokale Entwicklung
 
@@ -55,7 +61,7 @@ Die Entwicklungsseite läuft anschließend standardmäßig unter `http://localho
 npm run check
 ```
 
-Der Befehl führt ESLint, sieben automatisierte Datensatz- und Matcher-Tests sowie den Produktions-Build aus.
+Der Befehl führt ESLint, automatisierte Datensatz-, Diversitäts- und Matcher-Tests sowie den Produktions-Build aus.
 
 ## Produktions-Build
 
@@ -79,22 +85,31 @@ Danach ist MacroKitchen unter `http://localhost:8080` erreichbar.
 ```text
 src/
   data/
-    ingredients.ts      Referenzwerte der Zutaten
-    recipes.ts          deterministisch erzeugte Rezeptdatenbank
+    ingredients.ts           Referenzwerte der Zutaten
+    recipes.ts               zusammengeführte Rezeptdatenbank
+    expandedRecipes.ts       Einstiegspunkt der 500-Rezepte-Erweiterung
+    expandedBreakfast.ts     100 neue Frühstücke
+    expandedLunch.ts         100 neue Mittagessen
+    expandedPreWorkout.ts    100 neue Pre-Workout-Gerichte
+    expandedDinner.ts        100 neue Abendessen
+    expandedSnacks.ts        100 neue Snacks
+    expansionFactory.ts      geprüfte Rezeptfamilien-Erzeugung
+    expansionProfiles.ts     kuratierte Geschmacks- und Zutatenprofile
   lib/
-    matcher.ts          Makro-Matching und Rezeptkombinationen
-    nutrition.ts        Nährwertberechnung und Skalierung
-    storage.ts          lokale Speicherung und Backup
-  App.tsx               Benutzeroberfläche und alle Workflows
-  styles.css            responsives Designsystem
+    matcher.ts               Makro-Matching und Rezeptkombinationen
+    nutrition.ts             Nährwertberechnung und Skalierung
+    storage.ts               lokale Speicherung und Backup
+  App.tsx                    Benutzeroberfläche und alle Workflows
+  styles.css                 responsives Designsystem
 public/
-  manifest.webmanifest  PWA-Metadaten
-  sw.js                  Offline- und Runtime-Cache
+  manifest.webmanifest       PWA-Metadaten
+  sw.js                      Offline- und Runtime-Cache
 .github/workflows/
-  ci.yml                 Lint, Tests und Build
-  pages.yml              GitHub-Pages-Deployment
+  ci.yml                     Lint, Tests und Build
+  pages.yml                  GitHub-Pages-Deployment
 docs/
-  NUTRITION_DATA.md      Methodik und Quellenhinweise
+  NUTRITION_DATA.md          Nährwertmethodik
+  RECIPE_RESEARCH.md         Recherche und Rezeptentwicklung
 ```
 
 ## Daten und Datenschutz

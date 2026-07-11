@@ -82,7 +82,7 @@ input[type='range'] { width: 100%; accent-color: var(--brand-strong); }
 .pair-card__recipes small { color: var(--muted); font-size: 9px; }
 .pair-card__macros { display: grid; grid-template-columns: repeat(4, 67px); gap: 5px; }
 
-.browse-toolbar { display: grid; grid-template-columns: 1fr 210px; gap: 12px; }
+.browse-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) 190px 210px; gap: 12px; }
 .search-field { min-height: 45px; border: 1px solid var(--line); background: var(--surface); border-radius: 13px; padding: 0 14px; display: flex; align-items: center; gap: 9px; }
 .search-field svg { color: var(--muted); }
 .search-field input { width: 100%; border: 0; background: transparent; color: var(--text); }
@@ -97,5 +97,6 @@ input[type='range'] { width: 100%; accent-color: var(--brand-strong); }
 .results-meta { display: flex; align-items: baseline; gap: 7px; margin: 0 0 13px; }
 .results-meta b { font-size: 14px; }
 .results-meta span { color: var(--muted); font-size: 10px; }
+.load-more-row { display: flex; justify-content: center; padding: 24px 0 6px; }
 
 .planner-hero, .pantry-hero { border: 1px solid rgba(166,239,141,.16); background: linear-gradient(135deg, var(--surface), var(--brand-soft)); border-radius: 20px; padding: 25px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }

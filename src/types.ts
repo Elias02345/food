@@ -54,6 +54,8 @@ export type MacroTarget = {
   fat: number
 }
 
+export type MealDistribution = Record<RecipeCategory, number>
+
 export type RecipeMatch = {
   recipe: Recipe
   scale: number

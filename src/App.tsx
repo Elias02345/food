@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Check, ChefHat, Download, Moon, PackageCheck, Settings, ShoppingBasket, Sun } from 'lucide-react'
+import { Check, ChefHat, Download, Moon, PackageCheck, Settings, Sun } from 'lucide-react'
 import { ingredients } from './data/ingredients'
 import { recipes } from './data/recipes'
 import { usePersistentState } from './lib/storage'
-import type { MacroTarget, PlannerEntry, Recipe, ShoppingItem } from './types'
-import { addNutrition, clampRemaining, navItems, type InstallPromptEvent, type Page } from './appShared'
+import type { MacroTarget, MealDistribution, PlannerEntry, Recipe, ShoppingItem } from './types'
+import { addNutrition, clampRemaining, defaultMealDistribution, getLocalDateKey, navItems, type InstallPromptEvent, type Page } from './appShared'
 import { Dashboard } from './pages/Dashboard'
 import { Finder } from './pages/Finder'
 import { Browse } from './pages/Browse'
@@ -14,12 +14,16 @@ import { Pantry } from './pages/Pantry'
 import { SettingsPage } from './pages/SettingsPage'
 import { GuidedCooking, RecipeDetail } from './components/RecipeModals'
 
+const emptyMacroTarget: MacroTarget = { calories: 0, protein: 0, carbs: 0, fat: 0 }
+
 function App() {
   const knownPages: Page[] = [...navItems.map((item) => item.id), 'settings']
   const initialPage = knownPages.includes(window.location.hash.slice(1) as Page) ? window.location.hash.slice(1) as Page : 'home'
   const [page, setPage] = useState<Page>(initialPage)
   const [dailyTarget, setDailyTarget] = usePersistentState<MacroTarget>('macroKitchen.dailyTarget', { calories: 1972, protein: 159, carbs: 188, fat: 59 })
-  const [consumed, setConsumed] = usePersistentState<MacroTarget>('macroKitchen.consumed', { calories: 0, protein: 0, carbs: 0, fat: 0 })
+  const [mealDistribution, setMealDistribution] = usePersistentState<MealDistribution>('macroKitchen.mealDistribution', defaultMealDistribution)
+  const [consumed, setConsumed] = usePersistentState<MacroTarget>('macroKitchen.consumed', emptyMacroTarget)
+  const [consumedDate, setConsumedDate] = usePersistentState<string>('macroKitchen.consumedDate', getLocalDateKey())
   const [favorites, setFavorites] = usePersistentState<string[]>('macroKitchen.favorites', [])
   const [shopping, setShopping] = usePersistentState<ShoppingItem[]>('macroKitchen.shopping', [])
   const [pantry, setPantry] = usePersistentState<string[]>('macroKitchen.pantry', [])
@@ -39,6 +43,29 @@ function App() {
   useEffect(() => {
     window.history.replaceState(null, '', `#${page}`)
   }, [page])
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const nextPage = window.location.hash.slice(1) as Page
+      if (knownPages.includes(nextPage)) setPage(nextPage)
+    }
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [])
+
+  useEffect(() => {
+    const syncDay = () => {
+      const today = getLocalDateKey()
+      if (consumedDate !== today) {
+        setConsumed(emptyMacroTarget)
+        setConsumedDate(today)
+        setToast('Neuer Tag: Der Makro-Fortschritt wurde zurückgesetzt.')
+      }
+    }
+    syncDay()
+    const interval = window.setInterval(syncDay, 60_000)
+    return () => window.clearInterval(interval)
+  }, [consumedDate, setConsumed, setConsumedDate])
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -89,7 +116,13 @@ function App() {
 
   const logRecipe = (recipe: Recipe, scale = 1) => {
     setConsumed((current) => addNutrition(current, recipe.nutrition, scale))
+    setConsumedDate(getLocalDateKey())
     setToast('Mahlzeit wurde zu den heutigen Makros addiert.')
+  }
+
+  const resetConsumed = () => {
+    setConsumed(emptyMacroTarget)
+    setConsumedDate(getLocalDateKey())
   }
 
   const openRecipe = (recipe: Recipe, scale = 1) => setSelected({ recipe, scale })
@@ -122,17 +155,17 @@ function App() {
           <div className="topbar__actions">
             {installPrompt && <button className="button button--ghost" onClick={async () => { await installPrompt.prompt(); setInstallPrompt(null) }}><Download size={17} /> App installieren</button>}
             <button className="icon-button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Darstellung wechseln">{theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}</button>
-            <button className="avatar">EK</button>
+            <button className="avatar" aria-label="Einstellungen öffnen" onClick={() => setPage('settings')}>EK</button>
           </div>
         </header>
 
-        {page === 'home' && <Dashboard remaining={remaining} target={dailyTarget} consumed={consumed} favorites={favorites} pantry={pantry} onOpen={openRecipe} onFavorite={toggleFavorite} onNavigate={setPage} onReset={() => setConsumed({ calories: 0, protein: 0, carbs: 0, fat: 0 })} />}
-        {page === 'finder' && <Finder initialTarget={remaining} favorites={favorites} pantry={pantry} onOpen={openRecipe} onFavorite={toggleFavorite} />}
+        {page === 'home' && <Dashboard remaining={remaining} target={dailyTarget} consumed={consumed} favorites={favorites} pantry={pantry} onOpen={openRecipe} onFavorite={toggleFavorite} onNavigate={setPage} onReset={resetConsumed} />}
+        {page === 'finder' && <Finder initialTarget={remaining} distribution={mealDistribution} favorites={favorites} pantry={pantry} onOpen={openRecipe} onFavorite={toggleFavorite} />}
         {page === 'browse' && <Browse favorites={favorites} onOpen={openRecipe} onFavorite={toggleFavorite} />}
-        {page === 'planner' && <Planner entries={planner} setEntries={setPlanner} target={dailyTarget} onOpen={openRecipe} addRecipeToShopping={addRecipeToShopping} />}
+        {page === 'planner' && <Planner entries={planner} setEntries={setPlanner} target={dailyTarget} distribution={mealDistribution} onOpen={openRecipe} addRecipeToShopping={addRecipeToShopping} />}
         {page === 'shopping' && <Shopping items={shopping} setItems={setShopping} />}
         {page === 'pantry' && <Pantry selected={pantry} setSelected={setPantry} />}
-        {page === 'settings' && <SettingsPage target={dailyTarget} setTarget={setDailyTarget} theme={theme} setTheme={setTheme} />}
+        {page === 'settings' && <SettingsPage target={dailyTarget} setTarget={setDailyTarget} distribution={mealDistribution} setDistribution={setMealDistribution} theme={theme} setTheme={setTheme} />}
       </main>
 
       <nav className="bottom-nav">
@@ -145,6 +178,5 @@ function App() {
     </div>
   )
 }
-
 
 export default App

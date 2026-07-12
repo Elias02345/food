@@ -1,0 +1,52 @@
+.meal-target-panel { display: grid; gap: 14px; margin: 14px 0 16px; }
+.meal-preset-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.meal-preset-row button { min-width: 0; min-height: 50px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); border-radius: 11px; padding: 8px 9px; display: flex; align-items: center; gap: 8px; text-align: left; cursor: pointer; }
+.meal-preset-row button:hover { border-color: var(--line-strong); color: var(--text); }
+.meal-preset-row button.is-active { border-color: rgba(166,239,141,.34); background: var(--brand-soft); color: var(--text); }
+.meal-preset-row button.is-active svg { color: var(--brand); }
+.meal-preset-row button span { min-width: 0; display: flex; flex-direction: column; font-size: 9px; font-weight: 700; }
+.meal-preset-row button small { color: var(--muted); font-size: 7px; margin-top: 2px; font-weight: 500; }
+.share-slider { border: 1px solid var(--line); background: var(--surface-2); border-radius: 13px; padding: 12px; display: grid; gap: 9px; }
+.share-slider > span { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.share-slider b { font-size: 10px; }
+.share-slider strong { color: var(--brand); font-size: 12px; }
+.share-slider small { color: var(--muted); font-size: 8px; line-height: 1.45; }
+.finder-target-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.finder-target-actions .button { padding-inline: 9px; }
+.finder-empty-target { min-height: 320px; border: 1px dashed var(--line-strong); background: var(--surface); border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px; color: var(--muted); }
+.finder-empty-target svg { color: var(--brand); }
+.finder-empty-target h3 { color: var(--text); margin: 13px 0 4px; }
+.finder-empty-target p { margin: 0; font-size: 11px; }
+
+.distribution-total { border: 1px solid var(--line); background: var(--surface-2); border-radius: 14px; padding: 13px 15px; margin: 2px 0 16px; display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+.distribution-total > div { display: flex; flex-direction: column; }
+.distribution-total span { color: var(--muted); font-size: 9px; }
+.distribution-total b { font-size: 22px; color: #f0b46f; }
+.distribution-total p { margin: 0; max-width: 520px; font-size: 9px; text-align: right; }
+.distribution-total.is-valid { border-color: rgba(166,239,141,.25); background: var(--brand-soft); }
+.distribution-total.is-valid b { color: var(--brand); }
+.distribution-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+.distribution-row { border: 1px solid var(--line); background: var(--surface-2); border-radius: 14px; padding: 13px; display: grid; gap: 12px; }
+.distribution-row__head { display: grid; grid-template-columns: 24px 1fr 78px; align-items: center; gap: 9px; }
+.distribution-row__head > svg { color: var(--brand); }
+.distribution-row__head > span { display: flex; min-width: 0; flex-direction: column; }
+.distribution-row__head b { font-size: 10px; }
+.distribution-row__head span small { color: var(--muted); font-size: 8px; margin-top: 2px; }
+.distribution-number { min-height: 34px; border: 1px solid var(--line); background: var(--surface); border-radius: 9px; display: flex; align-items: center; padding-right: 8px; }
+.distribution-number input { min-width: 0; width: 100%; border: 0; background: transparent; color: var(--text); padding: 8px; font-weight: 700; text-align: right; }
+.distribution-number small { color: var(--muted); font-size: 8px; }
+.allocation-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.allocation-preview span { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 9px; color: var(--muted); font-size: 8px; }
+.allocation-preview b { color: var(--text); }
+
+@media (max-width: 980px) {
+  .distribution-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+  .meal-preset-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .finder-target-actions { grid-template-columns: 1fr; }
+  .distribution-total { align-items: flex-start; flex-direction: column; }
+  .distribution-total p { text-align: left; }
+  .distribution-row__head { grid-template-columns: 22px 1fr 72px; }
+}

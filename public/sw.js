@@ -25,7 +25,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => cacheResponse(event.request, response))
-        .catch(async () => (await caches.match(event.request)) || caches.match('./index.html')),
+        .catch(async () => (await caches.match(event.request)) || (await caches.match('./index.html')) || Response.error()),
     )
     return
   }
@@ -34,7 +34,7 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cached) => {
       const network = fetch(event.request)
         .then((response) => cacheResponse(event.request, response))
-        .catch(() => cached)
+        .catch(() => cached || Response.error())
       return cached || network
     }),
   )

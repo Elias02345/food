@@ -33,7 +33,7 @@ describe('SmartNumberInput', () => {
     expect(onChange).toHaveBeenCalledWith(500)
   })
 
-  it('restores the current value when Escape is pressed', () => {
+  it('restores the current value without committing when Escape is pressed', () => {
     const onChange = vi.fn()
     render(<SmartNumberInput value={188} onChange={onChange} ariaLabel="Kohlenhydrate" />)
 
@@ -43,6 +43,6 @@ describe('SmartNumberInput', () => {
     fireEvent.keyDown(input, { key: 'Escape' })
 
     expect(input).toHaveValue('188')
-    expect(onChange).toHaveBeenCalledWith(188)
+    expect(onChange).not.toHaveBeenCalled()
   })
 })

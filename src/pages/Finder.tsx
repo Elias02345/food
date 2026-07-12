@@ -1,18 +1,28 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BarChart3, Check, ChevronRight, ClipboardList, Clock3, Copy, Dumbbell, Flame, Heart, Info, ListFilter, Plus, Refrigerator, RotateCcw, Search, ShoppingBasket, Sparkles, Sun, Target, Trash2, Upload, Utensils, WandSparkles, X, Zap } from 'lucide-react'
-import { ingredientList, ingredients } from '../data/ingredients'
-import { recipeCategories, recipes, recipesById } from '../data/recipes'
+import { Info, Plus, RotateCcw, Target } from 'lucide-react'
+import { recipeCategories, recipes } from '../data/recipes'
 import { findRecipeMatches, findRecipePairs, type MatchOptions } from '../lib/matcher'
-import { exportLocalData, importLocalData } from '../lib/storage'
-import type { MacroTarget, PlannerEntry, Recipe, ShoppingItem } from '../types'
-import { days, emptyNutrition, macroFields, type Page } from '../appShared'
-import { CategoryVisual, EmptyState, MacroPill, ProgressRing, RecipeCard, Toggle } from '../components/RecipeUI'
+import type { MacroTarget, MealDistribution, Recipe, RecipeCategory } from '../types'
+import { categoryIcons, macroFields, mealSlots, scaleMacroTarget } from '../appShared'
+import { CategoryVisual, MacroPill, RecipeCard, Toggle } from '../components/RecipeUI'
+import { SmartNumberInput } from '../components/SmartNumberInput'
 
-export function Finder({ initialTarget, favorites, pantry, onOpen, onFavorite }: {
-  initialTarget: MacroTarget; favorites: string[]; pantry: string[]; onOpen: (recipe: Recipe, scale?: number) => void; onFavorite: (id: string) => void
+type MealChoice = RecipeCategory | 'Frei'
+
+export function Finder({ initialTarget, distribution, favorites, pantry, onOpen, onFavorite }: {
+  initialTarget: MacroTarget
+  distribution: MealDistribution
+  favorites: string[]
+  pantry: string[]
+  onOpen: (recipe: Recipe, scale?: number) => void
+  onFavorite: (id: string) => void
 }) {
-  const [target, setTarget] = useState<MacroTarget>(initialTarget)
-  const [category, setCategory] = useState('Alle')
+  const initialMeal: RecipeCategory = 'Mittagessen'
+  const [meal, setMeal] = useState<MealChoice>(initialMeal)
+  const [sharePercent, setSharePercent] = useState(distribution[initialMeal] || 30)
+  const [target, setTarget] = useState<MacroTarget>(() => scaleMacroTarget(initialTarget, distribution[initialMeal] || 30))
+  const [customTarget, setCustomTarget] = useState(false)
+  const [category, setCategory] = useState<string>(initialMeal)
   const [priority, setPriority] = useState<MatchOptions['priority']>('balanced')
   const [maxMinutes, setMaxMinutes] = useState(35)
   const [vegetarian, setVegetarian] = useState(false)
@@ -20,35 +30,72 @@ export function Finder({ initialTarget, favorites, pantry, onOpen, onFavorite }:
   const [pantryOnly, setPantryOnly] = useState(false)
   const [showPairs, setShowPairs] = useState(false)
 
-  useEffect(() => setTarget(initialTarget), [initialTarget])
+  useEffect(() => {
+    if (!customTarget) setTarget(scaleMacroTarget(initialTarget, sharePercent))
+  }, [initialTarget, sharePercent, customTarget])
+
+  const applyShare = (percent: number) => {
+    const safePercent = Math.min(100, Math.max(5, percent))
+    setSharePercent(safePercent)
+    setCustomTarget(false)
+    setTarget(scaleMacroTarget(initialTarget, safePercent))
+  }
+
+  const selectMeal = (slot: RecipeCategory) => {
+    setMeal(slot)
+    setCategory(slot)
+    applyShare(distribution[slot] || 5)
+  }
 
   const options = useMemo<MatchOptions>(() => ({ category, priority, maxMinutes, vegetarian, portable, pantryOnly, pantryIngredientIds: pantry }), [category, priority, maxMinutes, vegetarian, portable, pantryOnly, pantry])
-  const matches = useMemo(() => findRecipeMatches(recipes, target, options, 24), [target, options])
-  const pairs = useMemo(() => showPairs ? findRecipePairs(recipes, target, options, 8) : [], [showPairs, target, options])
+  const hasTarget = Object.values(target).some((value) => value > 0)
+  const matches = useMemo(() => hasTarget ? findRecipeMatches(recipes, target, options, 24) : [], [hasTarget, target, options])
+  const pairs = useMemo(() => showPairs && hasTarget ? findRecipePairs(recipes, target, options, 8) : [], [showPairs, hasTarget, target, options])
 
   return (
     <div className="finder-layout">
       <aside className="filter-panel">
-        <div className="filter-panel__title"><Target size={22} /><div><h2>Was ist noch offen?</h2><p>Die App sucht die passendste skalierte Portion.</p></div></div>
-        <div className="macro-input-grid">
-          {macroFields.map(({ key, label, short, icon: Icon }) => <label key={key}><span><Icon size={15} /> {label}</span><div><input type="number" min="0" value={target[key]} onChange={(e) => setTarget({ ...target, [key]: Number(e.target.value) })} /><small>{short}</small></div></label>)}
+        <div className="filter-panel__title"><Target size={22} /><div><h2>Wie groß soll diese Mahlzeit sein?</h2><p>Wähle eine Mahlzeit oder skaliere einen freien Anteil deines offenen Tagesziels.</p></div></div>
+
+        <div className="meal-target-panel">
+          <div className="meal-preset-row">
+            {mealSlots.map((slot) => {
+              const Icon = categoryIcons[slot]
+              return <button key={slot} className={meal === slot ? 'is-active' : ''} onClick={() => selectMeal(slot)}><Icon size={16} /><span>{slot}<small>{distribution[slot]} %</small></span></button>
+            })}
+            <button className={meal === 'Frei' ? 'is-active' : ''} onClick={() => { setMeal('Frei'); setCategory('Alle') }}><Target size={16} /><span>Frei<small>eigener Anteil</small></span></button>
+          </div>
+
+          <label className="share-slider">
+            <span><b>{customTarget ? 'Manuell angepasst' : `${sharePercent} % vom offenen Tagesrest`}</b><strong>{sharePercent} %</strong></span>
+            <input type="range" min="5" max="100" step="5" value={sharePercent} onChange={(event) => applyShare(Number(event.target.value))} />
+            <small>{Math.round(initialTarget.calories * sharePercent / 100)} kcal · {Math.round(initialTarget.protein * sharePercent / 100)} g Protein als Ausgangswert</small>
+          </label>
         </div>
-        <button className="button button--ghost button--full" onClick={() => setTarget(initialTarget)}><RotateCcw size={16} /> Tagesrest übernehmen</button>
+
+        <div className="macro-input-grid">
+          {macroFields.map(({ key, label, short, icon: Icon }) => <label key={key}><span><Icon size={15} /> {label}</span><div><SmartNumberInput value={target[key]} ariaLabel={`${label} für diese Mahlzeit`} min={0} step={key === 'calories' ? 1 : 0.1} onChange={(value) => { setTarget((current) => ({ ...current, [key]: value })); setCustomTarget(true) }} /><small>{short}</small></div></label>)}
+        </div>
+        <div className="finder-target-actions">
+          <button className="button button--ghost" onClick={() => applyShare(sharePercent)}><RotateCcw size={16} /> Anteil neu berechnen</button>
+          <button className="button button--ghost" onClick={() => applyShare(100)}>100 % Rest</button>
+        </div>
+
         <hr />
-        <label className="field"><span>Kategorie</span><select value={category} onChange={(e) => setCategory(e.target.value)}><option>Alle</option>{recipeCategories.map((item) => <option key={item}>{item}</option>)}</select></label>
-        <label className="field"><span>Priorität</span><select value={priority} onChange={(e) => setPriority(e.target.value as MatchOptions['priority'])}><option value="balanced">Ausgewogen</option><option value="protein">Protein möglichst genau</option><option value="calories">Kalorien möglichst genau</option><option value="carbs">Kohlenhydrate möglichst genau</option></select></label>
-        <label className="range-field"><span>Maximale Zeit <b>{maxMinutes} Min.</b></span><input type="range" min="5" max="50" step="5" value={maxMinutes} onChange={(e) => setMaxMinutes(Number(e.target.value))} /></label>
+        <label className="field"><span>Rezeptkategorie</span><select value={category} onChange={(event) => setCategory(event.target.value)}><option>Alle</option>{recipeCategories.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label className="field"><span>Priorität</span><select value={priority} onChange={(event) => setPriority(event.target.value as MatchOptions['priority'])}><option value="balanced">Ausgewogen</option><option value="protein">Protein möglichst genau</option><option value="calories">Kalorien möglichst genau</option><option value="carbs">Kohlenhydrate möglichst genau</option></select></label>
+        <label className="range-field"><span>Maximale Zeit <b>{maxMinutes} Min.</b></span><input type="range" min="5" max="50" step="5" value={maxMinutes} onChange={(event) => setMaxMinutes(Number(event.target.value))} /></label>
         <div className="toggle-list">
           <Toggle checked={vegetarian} onChange={setVegetarian} label="Nur vegetarisch" />
           <Toggle checked={portable} onChange={setPortable} label="Für unterwegs" />
           <Toggle checked={pantryOnly} onChange={setPantryOnly} label="Nur aus Vorräten" disabled={pantry.length === 0} />
         </div>
-        <div className="info-box"><Info size={17} /><p>Nährwerte sind berechnete Näherungswerte. Marke, Garzustand und tatsächliches Gewicht können abweichen.</p></div>
+        <div className="info-box"><Info size={17} /><p>Du kannst den gemeinsamen Anteil per Slider wählen und danach Kalorien oder einzelne Makros unabhängig korrigieren.</p></div>
       </aside>
 
       <section className="finder-results">
-        <div className="section-heading section-heading--align-end"><div><span className="eyebrow">{matches.length} Vorschläge</span><h2>Deine besten Treffer</h2><p>Sortiert nach der kleinsten gemeinsamen Abweichung aller vier Zielwerte.</p></div><div className="segmented"><button className={!showPairs ? 'is-active' : ''} onClick={() => setShowPairs(false)}>Ein Rezept</button><button className={showPairs ? 'is-active' : ''} onClick={() => setShowPairs(true)}>Zwei kombinieren</button></div></div>
-        {!showPairs ? (
+        <div className="section-heading section-heading--align-end"><div><span className="eyebrow">{matches.length} Vorschläge</span><h2>{meal === 'Frei' ? 'Passend zu deinem Mahlzeitenziel' : `Passend für ${meal}`}</h2><p>Sortiert nach der kleinsten gemeinsamen Abweichung vom gewählten Teilziel.</p></div><div className="segmented"><button className={!showPairs ? 'is-active' : ''} onClick={() => setShowPairs(false)}>Ein Rezept</button><button className={showPairs ? 'is-active' : ''} onClick={() => setShowPairs(true)}>Zwei kombinieren</button></div></div>
+        {!hasTarget ? <div className="finder-empty-target"><Target size={34} /><h3>Lege zuerst ein Mahlzeitenziel fest</h3><p>Mindestens einer der vier Zielwerte muss größer als null sein.</p></div> : !showPairs ? (
           <div className="recipe-grid recipe-grid--three">{matches.map((match) => <RecipeCard key={match.recipe.id} recipe={match.recipe} match={match} favorite={favorites.includes(match.recipe.id)} onFavorite={() => onFavorite(match.recipe.id)} onOpen={() => onOpen(match.recipe, match.scale)} />)}</div>
         ) : (
           <div className="pair-list">{pairs.map((pair, index) => <div className="pair-card" key={`${pair.first.recipe.id}-${pair.second.recipe.id}`}><div className="pair-card__rank">#{index + 1}</div><div className="pair-card__recipes"><button onClick={() => onOpen(pair.first.recipe, pair.first.scale)}><CategoryVisual recipe={pair.first.recipe} compact /><span><b>{pair.first.recipe.title}</b><small>{Math.round(pair.first.scale * 100)} % Portion</small></span></button><Plus size={20} /><button onClick={() => onOpen(pair.second.recipe, pair.second.scale)}><CategoryVisual recipe={pair.second.recipe} compact /><span><b>{pair.second.recipe.title}</b><small>{Math.round(pair.second.scale * 100)} % Portion</small></span></button></div><div className="pair-card__macros"><MacroPill label="kcal" value={pair.combined.calories} unit="" strong /><MacroPill label="Protein" value={pair.combined.protein} unit="g" /><MacroPill label="KH" value={pair.combined.carbs} unit="g" /><MacroPill label="Fett" value={pair.combined.fat} unit="g" /></div></div>)}</div>

@@ -18,9 +18,10 @@ export function Finder({ initialTarget, distribution, favorites, pantry, onOpen,
   onFavorite: (id: string) => void
 }) {
   const initialMeal: RecipeCategory = 'Mittagessen'
+  const initialShare = distribution[initialMeal] ?? 30
   const [meal, setMeal] = useState<MealChoice>(initialMeal)
-  const [sharePercent, setSharePercent] = useState(distribution[initialMeal] || 30)
-  const [target, setTarget] = useState<MacroTarget>(() => scaleMacroTarget(initialTarget, distribution[initialMeal] || 30))
+  const [sharePercent, setSharePercent] = useState(initialShare)
+  const [target, setTarget] = useState<MacroTarget>(() => scaleMacroTarget(initialTarget, initialShare))
   const [customTarget, setCustomTarget] = useState(false)
   const [category, setCategory] = useState<string>(initialMeal)
   const [priority, setPriority] = useState<MatchOptions['priority']>('balanced')
@@ -35,7 +36,7 @@ export function Finder({ initialTarget, distribution, favorites, pantry, onOpen,
   }, [initialTarget, sharePercent, customTarget])
 
   const applyShare = (percent: number) => {
-    const safePercent = Math.min(100, Math.max(5, percent))
+    const safePercent = Math.min(100, Math.max(0, percent))
     setSharePercent(safePercent)
     setCustomTarget(false)
     setTarget(scaleMacroTarget(initialTarget, safePercent))
@@ -44,7 +45,7 @@ export function Finder({ initialTarget, distribution, favorites, pantry, onOpen,
   const selectMeal = (slot: RecipeCategory) => {
     setMeal(slot)
     setCategory(slot)
-    applyShare(distribution[slot] || 5)
+    applyShare(distribution[slot] ?? 0)
   }
 
   const options = useMemo<MatchOptions>(() => ({ category, priority, maxMinutes, vegetarian, portable, pantryOnly, pantryIngredientIds: pantry }), [category, priority, maxMinutes, vegetarian, portable, pantryOnly, pantry])
@@ -61,14 +62,14 @@ export function Finder({ initialTarget, distribution, favorites, pantry, onOpen,
           <div className="meal-preset-row">
             {mealSlots.map((slot) => {
               const Icon = categoryIcons[slot]
-              return <button key={slot} className={meal === slot ? 'is-active' : ''} onClick={() => selectMeal(slot)}><Icon size={16} /><span>{slot}<small>{distribution[slot]} %</small></span></button>
+              return <button key={slot} className={meal === slot ? 'is-active' : ''} onClick={() => selectMeal(slot)}><Icon size={16} /><span>{slot}<small>{distribution[slot] ?? 0} %</small></span></button>
             })}
             <button className={meal === 'Frei' ? 'is-active' : ''} onClick={() => { setMeal('Frei'); setCategory('Alle') }}><Target size={16} /><span>Frei<small>eigener Anteil</small></span></button>
           </div>
 
           <label className="share-slider">
             <span><b>{customTarget ? 'Manuell angepasst' : `${sharePercent} % vom offenen Tagesrest`}</b><strong>{sharePercent} %</strong></span>
-            <input type="range" min="5" max="100" step="5" value={sharePercent} onChange={(event) => applyShare(Number(event.target.value))} />
+            <input type="range" min="0" max="100" step="5" value={sharePercent} onChange={(event) => applyShare(Number(event.target.value))} />
             <small>{Math.round(initialTarget.calories * sharePercent / 100)} kcal · {Math.round(initialTarget.protein * sharePercent / 100)} g Protein als Ausgangswert</small>
           </label>
         </div>

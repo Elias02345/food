@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.2.0 – 2026-07-12
+
+### Hinzugefügt
+
+1. frei wählbarer Prozentanteil des offenen Tagesziels im Recipe Finder
+2. Mahlzeiten-Presets für Frühstück, Mittagessen, Pre-Workout, Abendessen und Snacks
+3. konfigurierbare Mahlzeitenverteilung in den Einstellungen
+4. automatische Nutzung der gespeicherten Verteilung im Wochenplan
+5. fehlertolerante Zahlenfelder ohne erzwungene Null oder führende Nullen
+6. automatische Rücksetzung des Tagesfortschritts bei einem neuen Kalendertag
+7. zusätzliche Tests für Eingaben, Zielskalierung und Verteilungslogik
+
+### Behoben
+
+1. der Finder verwendet nicht mehr standardmäßig das vollständige offene Tagesziel als eine einzelne Mahlzeit
+2. leere Zahlenfelder werden beim Bearbeiten nicht mehr sofort zu null
+3. der Offline-Cache bevorzugt bei Navigationen aktuelle Dateien und entfernt veraltete Cache-Versionen
+4. importierte Sicherungen laden die App nach erfolgreichem Import automatisch neu
+5. das Profilkürzel in der Kopfzeile öffnet nun tatsächlich die Einstellungen
+
 ## 1.1.0 – 2026-07-11
 
 ### Hinzugefügt

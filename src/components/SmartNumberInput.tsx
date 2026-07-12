@@ -10,10 +10,7 @@ type SmartNumberInputProps = {
   className?: string
 }
 
-const formatValue = (value: number) => {
-  const rounded = Math.round(value * 10) / 10
-  return Number.isInteger(rounded) ? String(rounded) : String(rounded)
-}
+const formatValue = (value: number) => String(Math.round(value * 10) / 10)
 
 const cleanDraft = (draft: string) => {
   if (draft === '') return ''
@@ -27,6 +24,7 @@ const cleanDraft = (draft: string) => {
 export function SmartNumberInput({ value, onChange, ariaLabel, min = 0, max = Number.POSITIVE_INFINITY, step = 1, className }: SmartNumberInputProps) {
   const [draft, setDraft] = useState(() => formatValue(value))
   const focused = useRef(false)
+  const skipNextCommit = useRef(false)
 
   useEffect(() => {
     if (!focused.current) setDraft(formatValue(value))
@@ -34,6 +32,11 @@ export function SmartNumberInput({ value, onChange, ariaLabel, min = 0, max = Nu
 
   const commit = () => {
     focused.current = false
+    if (skipNextCommit.current) {
+      skipNextCommit.current = false
+      setDraft(formatValue(value))
+      return
+    }
     const normalized = draft.trim().replace(',', '.')
     const parsed = normalized === '' ? min : Number(normalized)
     const safeValue = Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : value
@@ -61,6 +64,7 @@ export function SmartNumberInput({ value, onChange, ariaLabel, min = 0, max = Nu
       onKeyDown={(event) => {
         if (event.key === 'Enter') event.currentTarget.blur()
         if (event.key === 'Escape') {
+          skipNextCommit.current = true
           setDraft(formatValue(value))
           event.currentTarget.blur()
         }
